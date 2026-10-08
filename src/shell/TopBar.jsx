@@ -65,7 +65,7 @@ function GenerateMotion() {
 	const hasBlocks = promptClips.some((clip) => clip.text.trim());
 	const [open, setOpen] = useState(false);
 	const caretRef = useRef(null);
-	const reason = sceneGenerateDisabledReason();
+	const reason = import.meta.env.VITE_COZYCLAY_HOSTED === "1" ? "AI motion needs a connected motion service. Open an existing motion project to refine it here." : sceneGenerateDisabledReason();
 	const actions = [
 		{ id: "new", label: ko("Start over", "새로 만들기"), reason, run: () => runArdy({ fresh: true }) },
 		{ id: "again", label: ko("Take it again", "다시 뽑기"), reason: sceneAgainDisabledReason(), run: runSceneAgain },

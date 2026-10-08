@@ -1,3 +1,6 @@
+import { useTouchLayout, touchNavigationClaims } from "./touch-layout.js";
+import { offerTouchDownload } from "./touch-download.js";
+import { events as createFiberEvents } from "@react-three/fiber";
 import { useMotion } from "./domains/motion.js";
 import { useCast } from "./domains/cast.js";
 import { useShots } from "./domains/shots.js";
@@ -486,6 +489,7 @@ export default function App() {
 	const embedMode = ["scene", "playview"].includes(new URLSearchParams(globalThis.location?.search || "").get("embed"));
 	// The landing page's try-it iframe: full studio interaction on a preset
 	// scene with the project chrome hidden and saving off (see playground.js).
+	const touchLayout = useTouchLayout();
 	const playgroundMode = isPlaygroundEmbed(globalThis.location?.search);
 	const [playgroundHint, setPlaygroundHint] = useState(null);
 	const playgroundExportRef = useRef(null);
@@ -508,7 +512,7 @@ export default function App() {
 			firstRun = !query && !params.get("scene") && !cameraTutorialSuppressed()
 				&& !loadProjectSession()?.name && !globalThis.localStorage?.getItem(SCENES_STORAGE_KEY);
 		} catch { firstRun = false; }
-		return !embedMode && !playgroundMode && !cameraTutorialSuppressed() && (query ? "query" : firstRun ? "first-run" : null);
+		return !touchLayout && !embedMode && !playgroundMode && !cameraTutorialSuppressed() && (query ? "query" : firstRun ? "first-run" : null);
 	});
 	const cameraTutorialQuery = Boolean(cameraTutorialEntry);
 	const [cameraTutorial, setCameraTutorial] = useState(false);
@@ -873,6 +877,32 @@ export default function App() {
 	}
 	const stageRef = useRef();
 	const mainPaneRef = useRef();
+  const usePaneEventsRef = useRef(false);
+
+  const paneEvents = useMemo(() => (root) => {
+    const base = createFiberEvents(root);
+    let insidePane = true;
+    return {
+      ...base,
+      compute(event, state, previous) {
+        if (!usePaneEventsRef.current) {
+          insidePane = true;
+          return base.compute?.(event, state, previous);
+        }
+        const rect = mainPaneRef.current?.getBoundingClientRect();
+        if (!rect || rect.width < 1 || rect.height < 1) {
+          insidePane = false; state.pointer.set(2, 2);
+        } else {
+          const x = event.clientX - rect.left, y = event.clientY - rect.top;
+          insidePane = x >= 0 && x <= rect.width && y >= 0 && y <= rect.height;
+          state.pointer.set(x / rect.width * 2 - 1, -y / rect.height * 2 + 1);
+        }
+        state.raycaster.setFromCamera(state.pointer, state.camera);
+      },
+      filter(hits, state) { return !insidePane ? [] : base.filter ? base.filter(hits, state) : hits; },
+    };
+  }, []);
+
 	const insetPaneRef = useRef();
 	// The shot preview pane: the recording camera's framed output, rendered
 	// like an exported frame (no editing chrome) while the editor camera owns
@@ -1201,6 +1231,7 @@ export default function App() {
 		addPromptClip, changePromptClip, PROMPT_BLOCK_MAX_FRAMES, resizePromptClip, movePromptClip,
 		removePromptClip,
 	} = castDomain;
+	usePaneEventsRef.current = touchLayout && Boolean(posing);
 	const { publishStudioCharacters, syncStudioLayerBuffer, undoScene, redoScene, snapshotStudioDomain } = castDomain;
 	// The cast as of this render, for async handlers: an extraction that
 	// started three renders ago must place its takes against the CURRENT cast,
@@ -3306,7 +3337,7 @@ export default function App() {
 			job.controller.signal.throwIfAborted();
 			attempt?.succeed();
 			updateExportStatus(job, "completed", { message: request.download
-				? ko("Export completed. Download requested; check your browser's downloads. The OS save is not confirmed.", "내보내기를 완료하고 다운로드를 요청했어요. 브라우저 다운로드를 확인하세요. OS 저장 완료는 확인할 수 없어요.")
+				? touchLayout && ["video", "depth_video"].includes(request.kind) ? "Video ready. Tap Save video or Share video to keep the clip." : ko("Export completed. Download requested; check your browser's downloads. The OS save is not confirmed.", "내보내기를 완료하고 다운로드를 요청했어요. 브라우저 다운로드를 확인하세요. OS 저장 완료는 확인할 수 없어요.")
 				: ko("Export pipeline completed. The requesting tool handles the file handoff.", "내보내기 처리를 완료했어요. 요청한 도구에서 파일 전달을 처리합니다.") });
 			if (!request.external) {
 				if (request.kind === "video") { track("export:video_succeeded", { format: "mp4" }); trackFeature("export_video"); }
@@ -3463,11 +3494,15 @@ export default function App() {
 			const slate = (moveSequence?.slate ?? "shot").toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, "") || "shot";
 			// Default plate filename: const name = `cozyclay-${slate}.mp4`
 			const name = fileName ?? `cozyclay-${slate}.mp4`;
-			const url = URL.createObjectURL(result.blob);
-			try { saveDownload(url, name); }
-			finally { setTimeout(() => URL.revokeObjectURL(url), 10_000); }
+            if (touchLayout) offerTouchDownload(result.blob, name);
+            else {
+              const url = URL.createObjectURL(result.blob);
+              try { saveDownload(url, name); }
+              finally { setTimeout(() => URL.revokeObjectURL(url), 10_000); }
+            }
 			setRecordedVideoName(name);
-			setToast((isKo, ko) => isKo ? `${name} 다운로드 요청 · ${result.frameCount}프레임` : `Download requested: ${name} · ${result.frameCount} frames`);
+			if (touchLayout) setToast("Video ready — tap Save video or Share video.");
+			else setToast((isKo, ko) => isKo ? `${name} 다운로드 요청 · ${result.frameCount}프레임` : `Download requested: ${name} · ${result.frameCount} frames`);
 			return { ...result, fileName: name };
 		}
 		return result;
@@ -6824,7 +6859,8 @@ export default function App() {
 						<Canvas
 							shadows="percentage"
 							frameloop={renderActive ? "always" : "demand"}
-							dpr={[1, 2]}
+							dpr={touchLayout ? [1, 1.25] : [1, 2]}
+							events={paneEvents}
 							// Measure the layout box, not the transformed one: stageIn's scale()
 							// at mount used to leave the buffer short of the box in every mode.
 							resize={{ offsetSize: true }}
@@ -6947,7 +6983,7 @@ export default function App() {
 							{gizmoView && !playMode && !posing && !ikMode && (
 								<ObjectGizmo
 									pickOnly
-									claimPointer={lineEditMode ? lineGrabProbe : undefined}
+									claimPointer={(event) => touchNavigationClaims(event) || (lineEditMode && lineGrabProbe(event))}
 									object={characterGizmoObject}
 									objects={characterGizmoObject ? [characterGizmoObject] : []}
 									mode={gizmoMode}
@@ -7034,6 +7070,8 @@ export default function App() {
 							    pointerdowns that hit a handle, so empty-space drags orbit
 							    and the wheel dollies without wrecking the framing. */}
 							<FlyControls
+								onTouchStart={() => appContext.storeDomain("shot").beginGesture()}
+								onTouchEnd={() => appContext.storeDomain("shot").finishGesture()}
 								enabled={!posing && !playMode}
 								cameraLocked={lookThroughShot && i2vMotionCameraLocked}
 								camRef={ikMode ? poserCamRef : lookThroughShot ? shotCamRef : editorCamRef}
@@ -7049,7 +7087,7 @@ export default function App() {
 							}}
 								onCameraChange={lookThroughShot && !ikMode ? commitManualCameraFraming : undefined}
 							/>
-							<PoseHandles
+							<PoseHandles paneRef={mainPaneRef}
 								root={posedRig()}
 								enabled={!!posing && !planIsMain && !playMode}
 								onChange={(before, after) => {
@@ -7057,7 +7095,7 @@ export default function App() {
 									setPoseTick((n) => n + 1);
 								}}
 							/>
-							<IkHandles
+							<IkHandles paneRef={mainPaneRef}
 								chains={ikChains}
 								fkJoints={ikFkJoints}
 								ikState={ikStateRef.current}
@@ -7193,7 +7231,7 @@ export default function App() {
 									)
 								}
 								onGroundClick={waypointMode && !planIsMain ? addFloorWaypoint : undefined}
-								claimPointer={lineEditMode ? lineGrabProbe : undefined}
+								claimPointer={(event) => touchNavigationClaims(event) || (lineEditMode && lineGrabProbe(event))}
 							/>
 							{!preview && railCurve && (
 								<CameraRailScenePreview

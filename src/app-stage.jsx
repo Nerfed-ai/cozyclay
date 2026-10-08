@@ -1160,8 +1160,12 @@ export function CameraGlide({ glide, camRef, lookRef, onDone }) {
 			onDone?.();
 		};
 		gl.domElement.addEventListener("pointerdown", cancel, true);
-		invalidate();
-		return () => gl.domElement.removeEventListener("pointerdown", cancel, true);
+        window.addEventListener("cozyclay:touch-navigation-start", cancel);
+        invalidate();
+        return () => {
+          gl.domElement.removeEventListener("pointerdown", cancel, true);
+          window.removeEventListener("cozyclay:touch-navigation-start", cancel);
+        };
 		// camRef/lookRef are stable refs; onDone identity is per-glide noise
 		// eslint-disable-next-line react-hooks/exhaustive-deps
 	}, [glide, gl, invalidate]);
