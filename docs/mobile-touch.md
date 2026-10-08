@@ -10,7 +10,7 @@ Mobile adaptation of the existing editor, on `chore/mobile-touch`.
 
 ## Hosted version
 
-`npm run build:touch` builds the static editor and opens /app/ from the site root. The corresponding source is linked from Help and /source/ under AGPL-3.0. The existing project/editor architecture is preserved.
+`npm run build` (also `npm run build:touch`) builds the static editor and opens /app/ from the site root. The corresponding source is linked from Help and /source/ under AGPL-3.0. The existing project/editor architecture is preserved. `npm run build:editor` retains the upstream editor build for use with locally configured services; `npm run dev` is unchanged.
 
 The static site does not host the upstream AI motion, agent or OAuth sidecar services. Import an existing/generated motion project for touch refinement. AI generation still needs the separately configured upstream motion service. MP4 support depends on the device providing a compatible WebCodecs H.264 encoder; the editor retains its existing explicit codec errors and PNG/project exports.
 

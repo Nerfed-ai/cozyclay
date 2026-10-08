@@ -5,7 +5,7 @@
   "scripts": {
     "dev": "node tools/dev-full.mjs --host 127.0.0.1 --port 5180",
     "dev:ui": "vite",
-    "build": "vite build && node tools/sitemap.mjs",
+    "build": "npm run build:touch",
     "test": "npm run build && node tools/run-tests.mjs",
     "test:manifest": "node tools/run-tests.mjs --list",
     "test:analytics": "node test/verify-analytics.mjs",
@@ -70,7 +70,8 @@
     "test:motion-edit": "node test/verify-motion-edit.mjs",
     "test:footage-bridge": "node test/verify-footage-bridge.mjs",
     "test:bvh-cskel27": "node test/verify-bvh-cskel27.mjs",
-    "build:touch": "VITE_COZYCLAY_HOSTED=1 VITE_SOURCE_CODE_URL=https://github.com/Nerfed-ai/cozyclay/tree/chore/mobile-touch npm run build && node tools/prepare-touch-site.mjs"
+    "build:touch": "VITE_COZYCLAY_HOSTED=1 VITE_SOURCE_CODE_URL=https://github.com/Nerfed-ai/cozyclay/tree/chore/mobile-touch npm run build:editor && node tools/prepare-touch-site.mjs",
+    "build:editor": "vite build && node tools/sitemap.mjs"
   },
   "license": "AGPL-3.0-or-later",
   "type": "module",
