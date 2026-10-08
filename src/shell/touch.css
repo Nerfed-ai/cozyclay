@@ -1,0 +1,124 @@
+/* Touch shell sits above the existing layered desktop styles. */
+.app[data-touch-layout] {
+  --touch-safe-top: env(safe-area-inset-top, 0px);
+  --touch-safe-bottom: env(safe-area-inset-bottom, 0px);
+  --touch-bottom: calc(128px + var(--touch-safe-bottom));
+  --shell-center-left: 8px; --shell-center-right: 8px; --shell-gap: 8px;
+  height: 100dvh; min-height: 0; font-size: 14px;
+}
+.app[data-touch-layout] .workspace::after { display: none; }
+.app[data-touch-layout] .viewport,
+.app[data-touch-layout] .stage { position: absolute; inset: 0; width: 100%; height: 100%; }
+.app[data-touch-layout] .vp-main { top: calc(110px + var(--touch-safe-top)); bottom: var(--touch-bottom); left: 8px; right: 8px; }
+.app[data-touch-layout] .studio-left-column,
+.app[data-touch-layout] .studio-right-column,
+.app[data-touch-layout] .studio-dock-slot { display: none; }
+.app[data-touch-layout] .workspace-splitter,
+.app[data-touch-layout] .v2-dock-resize,
+.app[data-touch-layout] .brandbar,
+.app[data-touch-layout] .vp-shot-preview,
+.app[data-touch-layout] .dock-shot-card,
+.app[data-touch-layout] .vp-inset,
+.app[data-touch-layout] .vp-mode-toolbar,
+.app[data-touch-layout] .vp-overlay-right { display: none; }
+.app[data-touch-layout] .topbar { position: absolute; top: var(--touch-safe-top); left: 8px; right: 8px; height: 48px; z-index: 40; background: var(--surface-panel); border-radius: 14px; }
+.app[data-touch-layout] .topbar-mcp { display: none; }
+.app[data-touch-layout] .topbar button { min-height: 44px; font-size: 14px; }
+.app[data-touch-layout] .viewport-titlebar { top: calc(112px + var(--touch-safe-top)); left: 12px; right: auto; }
+.app[data-touch-layout] .vp-overlay-left { position: static; max-height: calc(100dvh - 300px); overflow: auto; padding: 4px; }
+.app[data-touch-layout] .vp-overlay-left:has(.vp-menu) { overflow: visible; }
+.app[data-touch-layout] .vp-overlay-left button { min-width: 44px; min-height: 44px; }
+.app[data-touch-layout] .vp-overlay-left .vp-menu { left: 54px; top: 0; max-width: calc(100vw - 82px); max-height: calc(100dvh - 260px); overflow: auto; }
+.app[data-touch-layout] .vp-values { display: none; }
+.app[data-touch-layout] button,
+.app[data-touch-layout] input,
+.app[data-touch-layout] select { touch-action: manipulation; }
+.app[data-touch-layout] input:not([type=range]):not([type=checkbox]):not([type=color]),
+.app[data-touch-layout] textarea,
+.app[data-touch-layout] select { font-size: 16px; }
+.touch-tools, .touch-actions, .touch-transport, .touch-nav, .touch-sheet-heading {
+  position: absolute; z-index: 30; background: var(--surface-panel); color: var(--text-1);
+}
+.touch-tools { top: calc(54px + var(--touch-safe-top)); left: 8px; right: 8px; display: flex; align-items: center; gap: 6px; padding: 4px; border-radius: 14px; }
+.touch-tools button, .touch-actions button, .touch-nav button, .touch-sheet-heading button, .touch-help button, .touch-download button {
+  min-height: 44px; border: 0; border-radius: 10px; padding: 0 12px; font: inherit; color: var(--text-1); background: var(--surface-raised, var(--surface-panel));
+}
+.touch-mode { display: flex; flex: 1; gap: 4px; }
+.touch-mode button { flex: 1; }
+.touch-mode button[aria-pressed=true],
+.touch-nav button[aria-expanded=true],
+.touch-actions button[aria-pressed=true] { background: var(--select, #5e5de0); color: white; }
+.touch-tools select { max-width: 110px; min-height: 44px; border-radius: 10px; padding: 0 6px; color: var(--text-1); background: var(--surface-panel); }
+.touch-actions { top: calc(116px + var(--touch-safe-top)); right: 12px; display: flex; flex-direction: column; gap: 6px; background: transparent; }
+.touch-actions button { box-shadow: 0 2px 12px #0002; }
+.touch-actions button:disabled { opacity: .5; }
+.touch-transport { bottom: calc(58px + var(--touch-safe-bottom)); left: 8px; right: 8px; height: 64px; padding: 4px 8px; border-radius: 14px; }
+.touch-playback { display: flex; align-items: center; gap: 8px; height: 36px; }
+.touch-playback button { min-height: 36px; width: 56px; border: 0; border-radius: 8px; font: inherit; color: var(--text-1); background: var(--surface-raised, var(--surface-panel)); }
+.touch-playback input { flex: 1; min-width: 0; height: 36px; }
+.touch-playback output { min-width: 44px; font-variant-numeric: tabular-nums; }
+.touch-hint { font-size: 12px; text-align: center; line-height: 20px; color: var(--text-2); }
+.touch-nav { bottom: 0; left: 0; right: 0; height: calc(54px + var(--touch-safe-bottom)); display: grid; grid-template-columns: repeat(4, 1fr); gap: 4px; padding: 4px 8px var(--touch-safe-bottom); }
+.app[data-touch-layout]:not([data-mobile-panel=none]) .vp-main { bottom: 59%; }
+.app[data-touch-layout]:not([data-mobile-panel=none]) .touch-actions { top: auto; bottom: calc(59% + 6px); flex-direction: row; }
+.app[data-touch-layout]:not([data-mobile-panel=none]) .vp-overlay-left { max-height: calc(41dvh - 145px); }
+.app[data-touch-layout] .studio-left-column,
+.app[data-touch-layout] .studio-right-column,
+.app[data-touch-layout] .studio-dock-slot {
+  position: absolute; top: calc(41% + 44px); bottom: var(--touch-bottom); left: 8px; right: 8px;
+  width: auto; height: auto; min-height: 0; z-index: 29; background: var(--surface-panel);
+  border-radius: 0 0 16px 16px; overflow: hidden;
+}
+.app[data-touch-layout][data-mobile-panel=scene] .studio-left-column,
+.app[data-touch-layout][data-mobile-panel=details] .studio-right-column { display: flex; }
+.app[data-touch-layout][data-mobile-panel=timeline] .studio-dock-slot,
+.app[data-touch-layout][data-mobile-panel=assets] .studio-dock-slot { display: block; }
+.touch-sheet-heading { top: 41%; left: 8px; right: 8px; height: 44px; display: flex; align-items: center; justify-content: space-between; padding-left: 14px; border-radius: 16px 16px 0 0; }
+.app[data-touch-layout] .inspector-pane { overflow: auto; min-height: 0; flex: 1; }
+.app[data-touch-layout] .hierarchy-row { min-height: 44px; font-size: 14px; }
+.app[data-touch-layout] .inspector-pane button,
+.app[data-touch-layout] .inspector-pane input,
+.app[data-touch-layout] .inspector-pane select { min-height: 40px; }
+.app[data-touch-layout] .inspector-pane label { font-size: 14px; }
+.app[data-touch-layout] .v2-dock { display: block; height: 100%; overflow: auto; }
+.app[data-touch-layout] .bottom-timeline { width: 100%; height: 100%; overflow: auto; }
+.app[data-touch-layout] .bottom-timeline[hidden] { display: none; }
+.app[data-touch-layout] .timeline { min-width: 560px; min-height: 280px; }
+.app[data-touch-layout] .asset-browser { width: 100%; }
+.touch-help, .touch-download {
+  position: absolute; z-index: 90; left: 12px; right: 12px; top: calc(110px + var(--touch-safe-top));
+  max-height: calc(100dvh - 140px - var(--touch-safe-top)); overflow: auto;
+  padding: 20px; border: 1px solid var(--border, #8886); border-radius: 18px; background: var(--surface-panel); color: var(--text-1);
+  box-shadow: 0 20px 80px #0005; font-size: 16px; line-height: 1.5;
+}
+.touch-help h2, .touch-download h2 { font-size: 20px; margin-top: 0; }
+.touch-help a { color: var(--select, #5e5de0); }
+.touch-download { top: 25%; z-index: 120; width: auto; margin: 0; }
+.touch-download[open] { display: flex; flex-wrap: wrap; gap: 8px; }
+.touch-download h2, .touch-download p { flex-basis: 100%; overflow-wrap: anywhere; }
+.touch-download a { display: inline-flex; align-items: center; min-height: 44px; padding: 0 14px; border-radius: 10px; background: var(--select, #5e5de0); color: white; text-decoration: none; }
+.touch-download::backdrop { background: #0009; }
+@media (max-width: 900px), (pointer: coarse) and (max-width: 1200px) {
+  .menubar-menu, .menubar-popover, .menu-popover { max-width: calc(100vw - 16px); max-height: 75dvh; overflow: auto; }
+  .menubar-item { min-height: 44px; font-size: 14px; }
+  .project-browser.v2-start-window { width: 100%; max-height: 96dvh; flex-direction: column; overflow: auto; }
+  .project-browser .v2-start-nav { width: 100%; flex-direction: row; flex-wrap: wrap; }
+  .project-browser .v2-start-nav-list { display: flex; flex-direction: row; overflow-x: auto; }
+  .project-browser .v2-start-brand, .project-browser .v2-start-version { display: none; }
+  .project-browser .v2-start-main { min-width: 0; padding: 16px; }
+  .project-browser .v2-start-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .project-browser .v2-start-template { min-width: 0; }
+  .project-browser button { min-height: 44px; }
+  .project-browser input { font-size: 16px; }
+  .project-name-dialog { max-width: calc(100vw - 24px); }
+}
+@media (max-height: 550px) and (orientation: landscape) {
+  .app[data-touch-layout] { --touch-bottom: calc(114px + var(--touch-safe-bottom)); }
+  .touch-transport { height: 50px; }
+  .touch-hint { display: none; }
+  .app[data-touch-layout]:not([data-mobile-panel=none]) .vp-main { right: 46%; bottom: var(--touch-bottom); }
+  .app[data-touch-layout] .studio-left-column, .app[data-touch-layout] .studio-right-column, .app[data-touch-layout] .studio-dock-slot { left: 55%; top: calc(98px + var(--touch-safe-top)); bottom: var(--touch-bottom); }
+  .touch-sheet-heading { left: 55%; top: calc(54px + var(--touch-safe-top)); }
+  .app[data-touch-layout]:not([data-mobile-panel=none]) .touch-tools { right: 46%; }
+  .app[data-touch-layout]:not([data-mobile-panel=none]) .touch-actions { right: 47%; bottom: calc(var(--touch-bottom) + 6px); }
+}

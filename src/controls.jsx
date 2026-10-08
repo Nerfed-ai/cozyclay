@@ -1,6 +1,7 @@
 import { useEffect, useRef } from "react";
 import { useFrame, useThree } from "@react-three/fiber";
 import * as THREE from "three";
+import TouchCamera from "./touch-camera.jsx";
 
 const MOVE_SPEED = 2.6; // metres per second
 const CRANE_SPEED = 1.3; // Q/E up/down runs at half walk speed — fine
@@ -61,7 +62,7 @@ function announceNav(kind, key = null) {
 	window.dispatchEvent(new CustomEvent("cozyclay:nav", { detail: { kind, key } }));
 }
 
-export function FlyControls({ enabled, cameraLocked = false, camRef, look, getPivot, onFlyStateChange, onCameraChange }) {
+export function FlyControls({ enabled, cameraLocked = false, camRef, look, getPivot, onFlyStateChange, onCameraChange, onTouchStart, onTouchEnd }) {
 	const { gl, invalidate } = useThree();
 	const keys = useRef(new Set());
 	const gesture = useRef(null); // { kind: "fly" | "pan" | "orbit", pointerId, x, y, ... }
@@ -359,7 +360,7 @@ export function FlyControls({ enabled, cameraLocked = false, camRef, look, getPi
 			document.removeEventListener("pointerlockerror", onPointerLockError);
 			window.removeEventListener("blur", endGesture);
 		};
-	}, [enabled, gl, camRef, look]);
+	}, [enabled, cameraLocked, gl, camRef, look]);
 
 	useFrame((_, delta) => {
 		const cam = camRef.current;
@@ -389,5 +390,5 @@ export function FlyControls({ enabled, cameraLocked = false, camRef, look, getPi
 		}
 	});
 
-	return null;
+	return <TouchCamera enabled={enabled} cameraLocked={cameraLocked} camRef={camRef} look={look} getPivot={getPivot} onFlyStateChange={onFlyStateChange} onCameraChange={onCameraChange} onTouchStart={onTouchStart} onTouchEnd={onTouchEnd} />;
 }

@@ -141,12 +141,11 @@ export function DualRender({ stageRef, mainRef, insetRef, shotPreviewRef, shotCa
 	// --shell-dock): the dock's glass hole grows at once, and without a new
 	// frame it shows whatever the canvas last drew there.
 	useEffect(() => {
-		const card = shotPreviewRef?.current;
-		if (!card || typeof ResizeObserver === "undefined") return undefined;
-		const observer = new ResizeObserver(() => invalidate());
-		observer.observe(card);
-		return () => observer.disconnect();
-	}, [shotPreviewRef, invalidate]);
+		if (typeof ResizeObserver === "undefined") return undefined;
+        const observer = new ResizeObserver(() => invalidate());
+        [mainRef, insetRef, shotPreviewRef].forEach((ref) => { if (ref?.current) observer.observe(ref.current); });
+        return () => observer.disconnect();
+    }, [mainRef, insetRef, shotPreviewRef, invalidate]);
 	const { gl, scene, size } = useThree();
 	const edgePass = useMemo(() => {
 		const target = new THREE.WebGLRenderTarget(1, 1, {

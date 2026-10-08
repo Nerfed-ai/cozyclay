@@ -11,6 +11,9 @@ import "./shell.css";
 import "./glass.css";
 import "./glass-regions.css";
 import "./agent-glass.css";
+import { useTouchLayout } from "../touch-layout.js";
+import TouchWorkspace from "./TouchWorkspace.jsx";
+import "./touch.css";
 
 const DOCK_TAB_KEY = "cozyclay.dock.tab.v1";
 
@@ -29,6 +32,8 @@ function readDockTab() {
 export default function StudioShell({ viewport, children, ...props }) {
 	const { beginWorkspaceResize } = useStudioShell();
 	const [dockTab, setDockTab] = useState(readDockTab);
+	const touch = useTouchLayout();
+	const [mobilePanel, setMobilePanel] = useState("none");
 	// Embeds (playview, playground) keep the Sequencer-only dock.
 	const embedded = Boolean(props["data-embed-mode"]);
 	const shownTab = embedded ? "animation" : dockTab;
@@ -41,7 +46,7 @@ export default function StudioShell({ viewport, children, ...props }) {
 		}
 	}
 	return (
-		<div {...props} data-shell="glass" data-dock-tab={shownTab}>
+		<div {...props} data-shell="glass" data-dock-tab={shownTab} data-touch-layout={touch && !embedded ? "true" : undefined} data-mobile-panel={touch ? mobilePanel : undefined}>
 			<TopBar preferences={<PreferencesSlot />} />
 			<div className="main">
 				<div className="workspace">
@@ -86,6 +91,7 @@ export default function StudioShell({ viewport, children, ...props }) {
 				</div>
 			</div>
 			<StatusBar embedded={embedded} />
+			{touch && !embedded && <TouchWorkspace panel={mobilePanel} onPanelChange={setMobilePanel} onDockTabChange={changeDockTab} />}
 			{children}
 		</div>
 	);

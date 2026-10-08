@@ -38,7 +38,7 @@ function handleColor(entry) {
  * best matches the drag direction in screen space). Each move calls
  * `onChange()`.
  */
-export function PoseHandles({ root, enabled, onChange }) {
+export function PoseHandles({ root, enabled, onChange, paneRef }) {
 	const { camera, gl, raycaster } = useThree();
 	const meshRefs = useRef([]);
 	const jointsRef = useRef(new Map());
@@ -95,7 +95,7 @@ export function PoseHandles({ root, enabled, onChange }) {
 		const onMove = (ev) => {
 			const d = dragRef.current;
 			if (!d) return;
-			const rect = gl.domElement.getBoundingClientRect();
+			const rect = (paneRef?.current ?? gl.domElement).getBoundingClientRect();
 			tmp.ndc.set(
 				((ev.clientX - rect.left) / rect.width) * 2 - 1,
 				-((ev.clientY - rect.top) / rect.height) * 2 + 1
@@ -283,7 +283,7 @@ const FK_ROTATE_SPEED = 5;
  * Every drag move calls `onSolve(kind, trackId, targetWorld)`; the drag end
  * calls `onDragEnd(trackId)` so the caller can key it.
  */
-export function IkHandles({ chains, fkJoints, ikState, enabled, focus, onFocus, onSolve, onDragEnd, selectionOnly = false, onPartPick }) {
+export function IkHandles({ chains, fkJoints, ikState, enabled, focus, onFocus, onSolve, onDragEnd, selectionOnly = false, onPartPick, paneRef }) {
 	const { camera, gl, raycaster, scene } = useThree();
 	const handleRefs = useRef({}); // id -> mesh (all sphere handles)
 	const handleMetaRef = useRef(new Map()); // id -> { track, radius }
@@ -352,7 +352,7 @@ export function IkHandles({ chains, fkJoints, ikState, enabled, focus, onFocus, 
 				if (Math.hypot(ev.clientX - d.downXY[0], ev.clientY - d.downXY[1]) > CLICK_PX) d.moved = true;
 				return;
 			}
-			const rect = gl.domElement.getBoundingClientRect();
+			const rect = (paneRef?.current ?? gl.domElement).getBoundingClientRect();
 			tmp.ndc.set(
 				((ev.clientX - rect.left) / rect.width) * 2 - 1,
 				-((ev.clientY - rect.top) / rect.height) * 2 + 1
@@ -446,7 +446,7 @@ export function IkHandles({ chains, fkJoints, ikState, enabled, focus, onFocus, 
 		window.__ikProject = (world) => {
 			const v = world.clone ? world.clone() : new THREE.Vector3(world.x, world.y, world.z);
 			v.project(camera);
-			const rect = gl.domElement.getBoundingClientRect();
+			const rect = (paneRef?.current ?? gl.domElement).getBoundingClientRect();
 			return { x: rect.left + ((v.x + 1) / 2) * rect.width, y: rect.top + ((1 - v.y) / 2) * rect.height };
 		};
 		// effector local quaternion per chain track — rotation-edit assertions.
@@ -465,7 +465,7 @@ export function IkHandles({ chains, fkJoints, ikState, enabled, focus, onFocus, 
 			Object.fromEntries(visibilityDetailRef.current);
 		window.__ikVisibilityPerformance = () => ({ ...exposurePerfRef.current });
 		window.__ikControlScreenPositions = () => {
-			const rect = gl.domElement.getBoundingClientRect();
+			const rect = (paneRef?.current ?? gl.domElement).getBoundingClientRect();
 			return Object.fromEntries(
 				Object.entries(handleRefs.current)
 					.filter(([, mesh]) => mesh?.parent)
@@ -791,7 +791,7 @@ export function IkHandles({ chains, fkJoints, ikState, enabled, focus, onFocus, 
 	const pickRefs = useRef([]); // [{ mesh, track, axisDir, kind }]
 	if (typeof window !== "undefined") {
 		window.__ikPickScreenPositions = () => {
-			const rect = gl.domElement.getBoundingClientRect();
+			const rect = (paneRef?.current ?? gl.domElement).getBoundingClientRect();
 			return pickRefs.current
 				.filter((pick) => pick.mesh?.parent)
 				.map((pick) => {
@@ -927,7 +927,7 @@ const CLICK_PX = 4;
 				if (focused) beginDrag("empty", { id: "empty" }, null, null, downXY);
 				return;
 			}
-			const rect = el.getBoundingClientRect();
+			const rect = (paneRef?.current ?? el).getBoundingClientRect();
 			const ndc = new THREE.Vector2(
 				((ev.clientX - rect.left) / rect.width) * 2 - 1,
 				-((ev.clientY - rect.top) / rect.height) * 2 + 1
